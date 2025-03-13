@@ -24,19 +24,25 @@
 // mogo port
 #define mogo_port 8
 
+// lb Constants TODO: Use Enums post states
+#define REST 0
+#define READY 1
+#define DRIVER 2
+
+
 // pid constants
 
 // lateral PID controller
 lemlib::ControllerSettings
-    lateral_controller(10,  // proportional gain (kP)
+    lateral_controller(15,  // proportional gain (kP)
                        0,   // integral gain (kI)
-                       3,   // derivative gain (kD)
+                       50,   // derivative gain (kD)
                        3,   // anti windup
                        1,   // small error range, in inches
                        100, // small error range timeout, in milliseconds
                        3,   // large error range, in inches
                        500, // large error range timeout, in milliseconds
-                       20   // maximum acceleration (slew)
+                       5   // maximum acceleration (slew)
     );
 
 // angular PID controller
@@ -66,14 +72,53 @@ pros::adi::DigitalOut mogo(mogo_port, LOW);
 bool mogo_state = LOW;
 
 // lift PID controller
-lemlib::PID lift_pid(5, 0.0, 0, 5);
+lemlib::PID lift_pid(5, 0.0, 3, 5);
+int lift_state = 0;
 
-// lift exit conditions
-lemlib::ExitCondition small_lift_exit_condition(0.5, 100);
-lemlib::ExitCondition large_lift_exit_condition(2, 500);
+double lift_error(int state) {
+  int target = (state == READY) ? -100 : 0;
+  const double error = target - lady_brown_motor.get_position(0);
+  return error;
+}
 
-Lift lady_brown(lady_brown_motor, -1, lift_pid, small_lift_exit_condition,
-                large_lift_exit_condition);
+// lift controller function
+void control_lift(int up_down, bool rest, bool ready) {
+  // state changes
+
+  // ready button -> READY
+  if (ready) {
+    lift_state = READY;
+  }
+
+  // rest button -> REST
+  if (rest) {
+    lift_state = REST;
+  }
+
+  // up_down + READY -> DRIVER
+  if (up_down != 0 && lift_state == READY) {
+    lift_state = DRIVER;
+  }
+
+  // pid control
+  if (lift_state == READY || lift_state == REST) {
+    
+    const float output = lift_pid.update(lift_error(lift_state));
+    lady_brown_motor.move(output);
+  }
+
+  // driver control
+  if (lift_state == DRIVER) {
+    static int lady_brown_speed = 0;
+    if (up_down != 0) {
+      lady_brown_speed+=(up_down*10);
+      lady_brown_motor.move(lady_brown_speed);
+    } else {
+      lady_brown_motor.brake();
+      lady_brown_speed = 0;
+    }
+  }
+}
 
 // chassis motor groups
 pros::MotorGroup left_side(dt_left_ports, pros::v5::MotorGears::blue,

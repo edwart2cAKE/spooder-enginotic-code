@@ -42,7 +42,7 @@ void initialize() {
       pros::lcd::print(6, "Auton Name: %s", auto_names[auto_id].c_str());
 
       // print Lady Brown state to the brain screen
-      pros::lcd::print(7,  "Lady Brown State: %d", lady_brown.getState());
+      pros::lcd::print(7, "Lady Brown State: %d", lift_state);
 
       // print robot location to the brain screen
       pros::lcd::print(0, "X: %f", chassis.getPose().x);         // x
@@ -55,7 +55,7 @@ void initialize() {
                            pros::battery::get_current() / 1e6);
 
       // print lb error to brain
-      pros::lcd::print(4, "lb error: %s", lady_brown.getError());
+      pros::lcd::print(4, "lb error: %f", lift_error(lift_state));
 
       // delay to save resources
       pros::delay(20);
@@ -111,11 +111,17 @@ void autonomous() {
   case 4:
     match_ring2();
     break;
+  case 5:
+    test_angular(90);
+    break;
+  case 6:
+    test_angular_range(45, 45, 5);
+    break;
   default:
     pros::lcd::print(5, "You somehow broke it");
     break;
   }
-  pros::delay(1e9);
+  // pros::delay(1e9);
 }
 
 /**
@@ -139,35 +145,18 @@ void opcontrol() {
                  master.get_analog(ANALOG_RIGHT_Y));
 
     // intake control (R1 / R2)
-    int intake_movement = master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) -
-                          master.get_digital(pros::E_CONTROLLER_DIGITAL_R2);
-    intake.move(127 * intake_movement);
+    int intake_movement = B_INTAKE_UP - B_INTAKE_DOWN;
+    intake.move(-127 * intake_movement);
 
     // mogo control (down)
-    if (master.get_digital_new_press(DIGITAL_DOWN)) {
+    if (B_MOGO) {
       mogo_state = !mogo_state;
       mogo.set_value(mogo_state);
     }
 
-    // lift control (up, L1 / L2)
-    lady_brown.update(
-        master.get_digital(pros::E_CONTROLLER_DIGITAL_L2) -
-            master.get_digital(pros::E_CONTROLLER_DIGITAL_L1),
-        master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP));
-    //*/
+    // lady brown manual control with acceleration
+    control_lift(B_LB_UP - B_LB_DOWN, B_LB_REST, B_LB_READY);
 
-    /*/ lady brown manual control with acceleration
-    static int lady_brown_speed = 0;
-    int lady_brown_movement =
-        master.get_digital(pros::E_CONTROLLER_DIGITAL_L2) -
-        master.get_digital(pros::E_CONTROLLER_DIGITAL_L1);
-    if (lady_brown_movement != 0) {
-      lady_brown_speed+=(lady_brown_movement*10);
-      lady_brown_motor.move(lady_brown_speed);
-    } else {
-      lady_brown_motor.brake();
-      lady_brown_speed = 0;
-    }//*/
     if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
       autonomous();
     }

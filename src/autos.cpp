@@ -1,4 +1,5 @@
 #include "autos.hpp"
+#include "pros/rtos.hpp"
 #include "subsystems.hpp"
 #include <cmath>
 #include <sys/_intsup.h>
@@ -14,8 +15,24 @@ void test_lateral_range(int start_dist = 12, int dist_increment = 6,
   chassis.setPose(0, 0, 0);
   for (int i = 0; i < num_tests; i++) {
     int length = start_dist + i * dist_increment;
-    chassis.moveToPoint(0, length * (i & 1 - 2) /*flips between 1 and -1*/,
-                        std::max(500, length * 300), {.forwards = !(i & 1)});
+    test_lateral(length);
+    chassis.waitUntilDone();
+    pros::delay(1500);
+    chassis.turnToHeading(180, 1900);
+    chassis.waitUntilDone();
+  }
+}
+
+void test_angular(int a = 90) {
+  chassis.turnToHeading(chassis.getPose().theta + a, 1500);
+}
+void test_angular_range(int start_angle = 45, int angle_increment = 45,
+                        int num_tests = 5) {
+  chassis.setPose(0, 0, 0);
+  for (int i = 0; i < num_tests; i++) {
+    int length = start_angle + i * angle_increment;
+    test_angular(length);
+    chassis.waitUntilDone();
   }
 }
 
@@ -253,7 +270,7 @@ void match_ladder() {
 
 void match_ring2() {
   chassis.setPose(-36, -60, 180);
-  chassis.moveToPoint(-36, -24-12*std::sqrt(3), 1200,{.forwards = false});
+  chassis.moveToPoint(-36, -24 - 12 * std::sqrt(3), 1200, {.forwards = false});
   chassis.turnToPoint(-24, -24, 1200, {.forwards = false});
   chassis.moveToPoint(-24, -24, 1200, {.forwards = false});
 
@@ -271,6 +288,6 @@ void match_ring2() {
 }
 
 std::string auto_names[] = {"Single Lateral", "Full Lateral", "Skills Auto",
-                            "Match ladder", "2 Ring Match"};
+                            "Match ladder", "2 Ring Match", "Single Turn", "Multi Turn"};
 
-int num_autos = 5;
+int num_autos = 7;
