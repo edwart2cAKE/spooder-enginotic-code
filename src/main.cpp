@@ -8,7 +8,7 @@
 #include "subsystems.hpp"
 
 // auton id
-int auto_id = 2;
+int auto_id = 5;
 bool auton_ran;
 
 void on_right_button() { auto_id = (auto_id + 1) % num_autos; }
@@ -30,8 +30,9 @@ void initialize() {
   pros::lcd::register_btn2_cb(on_right_button);
 
   // reverse intake motor
-  intake.set_reversed(true);
   lady_brown_motor.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
+  optical.set_led_pwm(10); // turn on optical sensor led
+  optical.set_integration_time(100);
 
   // print position to brain screen
   auton_ran = false;
@@ -42,7 +43,7 @@ void initialize() {
       pros::lcd::print(6, "Auton Name: %s", auto_names[auto_id].c_str());
 
       // print Lady Brown state to the brain screen
-      pros::lcd::print(7, "Lady Brown State: %d", lift_state);
+      //pros::lcd::print(7, "Lady Brown State: %d", lift_state);
 
       // print robot location to the brain screen
       pros::lcd::print(0, "X: %f", chassis.getPose().x);         // x
@@ -100,7 +101,7 @@ void autonomous() {
     test_lateral(12);
     break;
   case 1:
-    test_lateral_range(12, 6, 5);
+    test_lateral_range(12, 6, 10);
     break;
   case 2:
     auto_skills();
@@ -146,7 +147,7 @@ void opcontrol() {
 
     // intake control (R1 / R2)
     int intake_movement = B_INTAKE_UP - B_INTAKE_DOWN;
-    intake.move(-127 * intake_movement);
+    intake_control(intake_movement);
 
     // mogo control (down)
     if (B_MOGO) {

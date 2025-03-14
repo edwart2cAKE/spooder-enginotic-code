@@ -10,9 +10,11 @@
 #include "pros/adi.hpp"
 #include "pros/motor_group.hpp"
 #include "pros/motors.hpp"
+#include "pros/optical.hpp"
 
 // Intake motor
 extern pros::Motor intake;
+extern void intake_control(int up_down); // intake control with anti jam
 
 // Lady Brown motor
 extern pros::MotorGroup lady_brown_motor;
@@ -23,6 +25,7 @@ extern int lift_state;
 // mogo
 extern pros::adi::DigitalOut mogo;
 extern bool mogo_state;
+extern pros::Optical optical; // optical sensor for ring detection
 
 // Direct Chassis object from lemlib
 extern lemlib::Chassis chassis;

@@ -1,12 +1,19 @@
 #include "autos.hpp"
 #include "pros/rtos.hpp"
 #include "subsystems.hpp"
+#include "lemlib/util.hpp"
 #include <cmath>
+#include <cstdio>
 #include <sys/_intsup.h>
 
 void test_lateral(int dist = 12) {
-  chassis.setPose(0, 0, 0);
-  chassis.moveToPoint(0, dist, std::max(500, dist * 300));
+  chassis.setPose(0, 0, chassis.getPose().theta);
+  int start_time = pros::millis();
+  chassis.moveToPoint(0, dist, std::max(500, abs(dist) * 300), {.forwards = (dist > 0)});
+  chassis.waitUntilDone();
+  int end_time = pros::millis();
+  printf("Time: %d\n", end_time - start_time);
+  printf("Distance: %d\n", dist);
 }
 
 void test_lateral_range(int start_dist = 12, int dist_increment = 6,
@@ -15,16 +22,21 @@ void test_lateral_range(int start_dist = 12, int dist_increment = 6,
   chassis.setPose(0, 0, 0);
   for (int i = 0; i < num_tests; i++) {
     int length = start_dist + i * dist_increment;
-    test_lateral(length);
-    chassis.waitUntilDone();
+    test_lateral(length * (i % 2 == 0 ? 1 : -1));
     pros::delay(1500);
-    chassis.turnToHeading(180, 1900);
-    chassis.waitUntilDone();
   }
 }
 
 void test_angular(int a = 90) {
-  chassis.turnToHeading(chassis.getPose().theta + a, 1500);
+  int start_time = pros::millis();
+  float start_theta = chassis.getPose().theta;
+  chassis.turnToHeading(chassis.getPose().theta + a, 1e4);
+  chassis.waitUntilDone();
+  int end_time = pros::millis();
+  float end_theta = chassis.getPose().theta;
+  printf("Time: %d\n", end_time - start_time);
+  printf("Angle: %d\n", a);
+  printf("Error: %f\n", end_theta - start_theta - a);
 }
 void test_angular_range(int start_angle = 45, int angle_increment = 45,
                         int num_tests = 5) {
@@ -32,7 +44,6 @@ void test_angular_range(int start_angle = 45, int angle_increment = 45,
   for (int i = 0; i < num_tests; i++) {
     int length = start_angle + i * angle_increment;
     test_angular(length);
-    chassis.waitUntilDone();
   }
 }
 
