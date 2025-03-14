@@ -298,7 +298,54 @@ void match_ring2() {
   chassis.tank(0, 0);
 }
 
-std::string auto_names[] = {"Single Lateral", "Full Lateral", "Skills Auto",
+void right_red4ring() {
+  chassis.setPose(14.5, -58.5,236); // set position
+  lady_brown_motor.set_zero_position(-100); // reset lb position
+
+  // score on alliance stake
+  chassis.tank(30, 30); // move forward to score on alliance stake
+  pros::delay(300); // wait for 300ms
+  chassis.tank(0, 0); // stop moving
+  pros::delay(300); // wait for 300ms
+  lady_brown_motor.move_relative(-700, 200); // move lb down to score on alliance stake
+  while (lady_brown_motor.get_position(0) > -700) { // wait for lb to finish moving
+    pros::delay(10);
+  }
+  lady_brown_motor.move_relative(700, 200); // move lb back up to starting position
+  pros::delay(300);
+  intake.move(127); // start intake to get rings
+  
+  // go to mogo
+  chassis.turnToPoint(24, -48, 1200, {.forwards = false});
+  chassis.moveToPoint(24, -48, 1200, {.forwards = false}); 
+
+  chassis.turnToPoint(24, -24, 1200, {.forwards = false}); // turn to mogo
+  chassis.moveToPoint(24, -24, 1200, {.forwards = false}); // move to mogo
+  chassis.waitUntilDone(); // wait for move to finish
+  mogo.set_value(1); // get mogo
+  pros::delay(500); // wait for mogo to get up
+
+  // go to middle 2 ring stack
+  chassis.turnToPoint(12, -48, 1200);
+  chassis.moveToPoint(12, -48, 1200); 
+
+  chassis.turnToHeading(-90, 1200);
+  chassis.moveToPoint(-24, -48, 3000, {.maxSpeed = 60}); // move to middle 2 ring stack
+
+  // go to corner 2 ring stack
+  chassis.moveToPoint(48, -48, 2000, {.forwards = false}); // prepare to turn to corner 2 ring stack
+  chassis.turnToPoint(48, -24, 1200); // turn to corner 2 ring stack
+  chassis.moveToPoint(48, -24, 1200); // move to corner 2 ring stack
+
+  // go to ladder
+  chassis.turnToHeading(-90, 1200);
+  chassis.moveToPoint(24, -24, 1200); // move to ladder
+  chassis.turnToHeading(-45, 1200);
+  chassis.moveToPoint(16, -16, 1200);
+  lady_brown_motor.move_relative(-540, 100); // move lb down to score on ladder
+}
+
+std::string auto_names[] = {"Right Red 4 Ring", "Full Lateral", "Skills Auto",
                             "Match ladder", "2 Ring Match", "Single Turn", "Multi Turn"};
 
 int num_autos = 7;

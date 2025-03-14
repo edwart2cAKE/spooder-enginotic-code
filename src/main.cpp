@@ -8,7 +8,7 @@
 #include "subsystems.hpp"
 
 // auton id
-int auto_id = 5;
+int auto_id = 0;
 bool auton_ran;
 
 void on_right_button() { auto_id = (auto_id + 1) % num_autos; }
@@ -98,7 +98,7 @@ void autonomous() {
   chassis.setBrakeMode(pros::E_MOTOR_BRAKE_HOLD);
   switch (auto_id) {
   case 0:
-    test_lateral(12);
+    right_red4ring(); // run right red 4 ring auto
     break;
   case 1:
     test_lateral_range(12, 6, 10);
@@ -160,6 +160,7 @@ void opcontrol() {
 
     if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
       autonomous();
+      chassis.setBrakeMode(pros::E_MOTOR_BRAKE_COAST); // set brake mode to coast after auto
     }
     // delay to save resources
 

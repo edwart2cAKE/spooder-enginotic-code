@@ -11,9 +11,7 @@ class Lift {
 private:
   pros::MotorGroup &m_motors;
   float gear_ratio;
-  lemlib::PID m_pid;
-  lemlib::ExitCondition m_small_exit_condition;
-  lemlib::ExitCondition m_large_exit_condition;
+  lemlib::PID m_pid; 
   enum State {
     REST,
     READY,
@@ -24,11 +22,9 @@ private:
   float getRotation() const;
 
 public:
-  Lift(pros::MotorGroup &motors, float gear_ratio, lemlib::PID pid,
-       lemlib::ExitCondition small_lift_exit_condition,
-       lemlib::ExitCondition large_exit_condition);
+  Lift(pros::MotorGroup &motors, float gear_ratio, lemlib::PID pid);
 
-  void update(int up_plus_down, bool ready);
+  void update(int up_plus_down, bool rest, bool ready);
   float getError() const;
   int getState();
 };
