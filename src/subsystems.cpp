@@ -1,8 +1,7 @@
 #include "subsystems.hpp"
-#include "lemlib/timer.hpp"
-#include "pros/llemu.hpp"
 #include "pros/motor_group.hpp"
 #include "pros/optical.hpp"
+#include "intake.hpp"
 
 // port macros
 
@@ -59,8 +58,8 @@ lemlib::ControllerSettings
     );
 
 // intake motor
-pros::Motor intake(intake_port, pros::v5::MotorGears::blue,
-                   pros::v5::MotorEncoderUnits::degrees);
+pros::Motor intake_motor(intake_port, pros::v5::MotorGears::blue,
+                         pros::v5::MotorEncoderUnits::degrees);
 
 // lady brown motor
 pros::MotorGroup lady_brown_motor({lady_brown_ports},
@@ -76,7 +75,10 @@ lemlib::PID lift_pid(3, 0, 5, 5);
 int lift_state = 0;
 
 // optical sensor
-pros::Optical optical(9);
+pros::Optical optical_sensor(9);
+
+// create Intake object
+Intake intake_c(intake_motor, optical_sensor);
 
 double lift_error(int state) {
   int target = (state == READY) ? -93 : -1;
@@ -125,62 +127,7 @@ void control_lift(int up_down, bool rest, bool ready) {
 
 // intake control with anti jam
 void intake_control(int up_down) {
-  // jam detection based on
-  static bool jammed = false;
-  static lemlib::Timer jam_timer(500);
-  static lemlib::Timer anti_jam_timer(1000);
-
-  static lemlib::Timer color_sort_timer(10); // timer for color sorting
-  static lemlib::Timer color_sort_stop_timer(
-      200); // timer for stopping color sort
-  static bool was_blue = false;
-  bool is_blue = 250 > optical.get_hue() &&
-                 optical.get_hue() > 200; // check if color is blue
-
-  if (intake.get_actual_velocity() > -10 && intake.get_actual_velocity() < 10 &&
-      intake.get_current_draw() > 0.7 * intake.get_current_limit()) {
-    jam_timer.resume();
-    if (jam_timer.isDone()) {
-      jammed = true;          // jam detected
-      anti_jam_timer.reset(); // reset anti jam timer
-    }
-  } else {
-    jam_timer.pause();
-    jam_timer.reset();
-    jammed = false; // no jam detected
-  }
-
-  // intake control
-  if (!jammed) {
-    if (up_down > 0) {
-      intake.move(127); // move intake up
-    } else if (up_down < 0) {
-      intake.move(-127); // move intake down
-    } else {
-      intake.move(0); // stop intake
-    }
-    if (was_blue && !is_blue) {
-      color_sort_timer.resume(); // start color sort timer at falling edge
-    }
-    if (color_sort_timer.isDone() && !color_sort_stop_timer.isDone()) {
-      intake.move(0);                 // stop intake when color is detected
-      color_sort_stop_timer.resume(); // start timer to stop color sort
-    }
-    if (color_sort_stop_timer.isDone()) {
-      color_sort_timer.pause(); // pause color sort timer
-      color_sort_timer.reset(); // reset stop timer
-      color_sort_stop_timer.reset(); // reset color sort timer
-      color_sort_stop_timer.pause(); // pause stop timer
-    }
-  } else
-  // jammed intake control
-  {
-    intake.move(-127); // stop intake if jammed
-    // start anti jam timer
-    anti_jam_timer.resume();
-  }
-  was_blue = is_blue; // store previous color state
-  pros::lcd::print(7, "Color Sort Timer %d", color_sort_timer.getTimeLeft());
+    //intake_c.controlIntake(up_down);
 }
 
 // chassis motor groups

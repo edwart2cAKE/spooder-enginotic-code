@@ -1,11 +1,8 @@
 #ifndef LIFT_HPP
 #define LIFT_HPP
 
-#include "lemlib/exitcondition.hpp"
 #include "lemlib/pid.hpp"
 #include "pros/motor_group.hpp"
-#include "pros/rotation.hpp"
-#include <string>
 
 class Lift {
 private:

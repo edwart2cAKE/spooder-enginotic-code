@@ -34,6 +34,9 @@ void initialize() {
   optical.set_led_pwm(10); // turn on optical sensor led
   optical.set_integration_time(100);
 
+  // make intake task
+  intake_c.controlIntakeTask();    // start the intake control task
+
   // print position to brain screen
   auton_ran = false;
   pros::Task screen_task([&]() {
@@ -147,7 +150,7 @@ void opcontrol() {
 
     // intake control (R1 / R2)
     int intake_movement = B_INTAKE_UP - B_INTAKE_DOWN;
-    intake_control(intake_movement);
+    intake_c.setDesiredVoltage(intake_movement * 127); // set desired voltage for intake
 
     // mogo control (down)
     if (B_MOGO) {

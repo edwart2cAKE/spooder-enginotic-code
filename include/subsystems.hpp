@@ -1,6 +1,7 @@
 #ifndef SUBSYSTEMS_HPP
 #define SUBSYSTEMS_HPP
 // IWYU pragma: keep
+#include "intake.hpp"
 #include "lemlib/chassis/chassis.hpp"       // IWYU pragma: keep
 #include "lemlib/chassis/trackingWheel.hpp" // IWYU pragma: keep
 #include "lemlib/exitcondition.hpp"         // IWYU pragma: keep
@@ -11,10 +12,11 @@
 #include "pros/motor_group.hpp"
 #include "pros/motors.hpp"
 #include "pros/optical.hpp"
+#include <sys/_intsup.h>
 
 // Intake motor
 extern pros::Motor intake;
-extern void intake_control(int up_down); // intake control with anti jam
+extern Intake intake_c; // intake control with anti jam
 
 // Lady Brown motor
 extern pros::MotorGroup lady_brown_motor;

@@ -1,7 +1,6 @@
 #include "autos.hpp"
 #include "pros/rtos.hpp"
 #include "subsystems.hpp"
-#include "lemlib/util.hpp"
 #include <cmath>
 #include <cstdio>
 #include <sys/_intsup.h>
@@ -9,7 +8,8 @@
 void test_lateral(int dist = 12) {
   chassis.setPose(0, 0, chassis.getPose().theta);
   int start_time = pros::millis();
-  chassis.moveToPoint(0, dist, std::max(500, abs(dist) * 300), {.forwards = (dist > 0)});
+  chassis.moveToPoint(0, dist, std::max(500, abs(dist) * 300),
+                      {.forwards = (dist > 0)});
   chassis.waitUntilDone();
   int end_time = pros::millis();
   printf("Time: %d\n", end_time - start_time);
@@ -299,41 +299,48 @@ void match_ring2() {
 }
 
 void right_red4ring() {
-  chassis.setPose(14.5, -58.5,236); // set position
+  chassis.setPose(14.5, -58.5, 236);        // set position
   lady_brown_motor.set_zero_position(-100); // reset lb position
+  intake_c.setColorRange(200, 250);         // throw away blue rings
 
   // score on alliance stake
   chassis.tank(30, 30); // move forward to score on alliance stake
-  pros::delay(300); // wait for 300ms
-  chassis.tank(0, 0); // stop moving
-  pros::delay(300); // wait for 300ms
-  lady_brown_motor.move_relative(-700, 200); // move lb down to score on alliance stake
-  while (lady_brown_motor.get_position(0) > -700) { // wait for lb to finish moving
+  pros::delay(300);     // wait for 300ms
+  chassis.tank(0, 0);   // stop moving
+  pros::delay(300);     // wait for 300ms
+  lady_brown_motor.move_relative(
+      -700, 200); // move lb down to score on alliance stake
+  while (lady_brown_motor.get_position(0) >
+         -700) { // wait for lb to finish moving
     pros::delay(10);
   }
-  lady_brown_motor.move_relative(700, 200); // move lb back up to starting position
+  lady_brown_motor.move_relative(700,
+                                 200); // move lb back up to starting position
   pros::delay(300);
-  intake.move(127); // start intake to get rings
-  
+  intake_c.setDesiredVoltage(127); // start intake to get rings
+
   // go to mogo
   chassis.turnToPoint(24, -48, 1200, {.forwards = false});
-  chassis.moveToPoint(24, -48, 1200, {.forwards = false}); 
+  chassis.moveToPoint(24, -48, 1200, {.forwards = false});
 
   chassis.turnToPoint(24, -24, 1200, {.forwards = false}); // turn to mogo
   chassis.moveToPoint(24, -24, 1200, {.forwards = false}); // move to mogo
   chassis.waitUntilDone(); // wait for move to finish
-  mogo.set_value(1); // get mogo
-  pros::delay(500); // wait for mogo to get up
+  mogo.set_value(1);       // get mogo
+  pros::delay(500);        // wait for mogo to get up
 
   // go to middle 2 ring stack
   chassis.turnToPoint(12, -48, 1200);
-  chassis.moveToPoint(12, -48, 1200); 
+  chassis.moveToPoint(12, -48, 1200);
 
   chassis.turnToHeading(-90, 1200);
-  chassis.moveToPoint(-24, -48, 3000, {.maxSpeed = 60}); // move to middle 2 ring stack
+  chassis.moveToPoint(-24, -48, 3000,
+                      {.maxSpeed = 60}); // move to middle 2 ring stack
 
   // go to corner 2 ring stack
-  chassis.moveToPoint(48, -48, 2000, {.forwards = false}); // prepare to turn to corner 2 ring stack
+  chassis.moveToPoint(
+      48, -48, 2000,
+      {.forwards = false});           // prepare to turn to corner 2 ring stack
   chassis.turnToPoint(48, -24, 1200); // turn to corner 2 ring stack
   chassis.moveToPoint(48, -24, 1200); // move to corner 2 ring stack
 
@@ -346,6 +353,7 @@ void right_red4ring() {
 }
 
 std::string auto_names[] = {"Right Red 4 Ring", "Full Lateral", "Skills Auto",
-                            "Match ladder", "2 Ring Match", "Single Turn", "Multi Turn"};
+                            "Match ladder",     "2 Ring Match", "Single Turn",
+                            "Multi Turn"};
 
 int num_autos = 7;
