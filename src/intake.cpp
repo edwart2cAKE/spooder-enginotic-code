@@ -1,6 +1,4 @@
 #include "intake.hpp"
-#include "liblvgl/llemu.hpp"
-#include "pros/llemu.hpp"
 
 Intake::Intake(pros::Motor &motor, pros::Optical &colorSensor)
     : motor(motor), colorSensor(colorSensor), jammed(false), jam_timer(500),
