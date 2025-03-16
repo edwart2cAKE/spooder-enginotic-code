@@ -448,9 +448,10 @@ void left_blue2ring() {
 }
 
 void states_skills() {
-  chassis.setPose(0, -60 + 4, 180);         // set position
+  chassis.setPose(0, -56, 180);         // set position
   lady_brown_motor.set_zero_position(-100); // reset lb position
   intake_c.setColorRange(200, 250);         // throw away blue rings
+  
 
   // score on alliance stake
   lady_brown_motor.move_absolute(
@@ -494,22 +495,37 @@ void states_skills() {
   chassis.turnToPoint(38, 0, 1200, {.forwards = false});
   chassis.moveToPoint(38, 0, 1200, {.forwards = false});
 
+  // comment trap */
+
   // score wall stake
+  intake_c.setDesiredVoltage(127); // stop intake
   chassis.turnToHeading(90, 1200); // turn to mogo stack
   intake_c.setAntiJamming(false); // turn off anti-jamming
-  lady_brown_motor.move_absolute(-142, 200);
-  chassis.moveToPoint(62, 0, 1800, {.maxSpeed = 50});
+  lady_brown_motor.move_absolute(-118, 200);
+  chassis.moveToPoint(70, 0, 1800, {.maxSpeed = 50});
+  chassis.waitUntil(12);
   pros::delay(1000); // wait for 1s to get rings in
   intake_c.setDesiredVoltage(-127); 
   pros::delay(50); // wait for 300ms to get rings in
   intake_c.setDesiredVoltage(127); // stop intake
+
   chassis.waitUntilDone(); // wait for move to finish
+  chassis.tank(30, 30);
+  pros::delay(50);
+  intake_c.setDesiredVoltage(-127); // stop intake
+  pros::delay(20);
+  intake_c.setDesiredVoltage(127);
+  pros::delay(50);
+  intake_c.setDesiredVoltage(-127); // stop intake
+  pros::delay(20);
+  intake_c.setDesiredVoltage(127);
+  pros::delay(50);
 
   intake_c.setDesiredVoltage(0); // stop intake
   lady_brown_motor.move_absolute(-500,
                                  200); // move lb down to score on wall stake
   timeout = 0;
-  chassis.tank(30, 30);
+  pros::delay(300); // wait for 300ms to get rings in
   while (lady_brown_motor.get_position(0) > -500 &&
          timeout < LB_TIMEOUT) { // wait for lb to finish moving
     pros::delay(10);

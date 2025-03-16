@@ -3,7 +3,7 @@
 #include "pros/llemu.hpp"
 
 Intake::Intake(pros::Motor &motor, pros::Optical &colorSensor)
-    : motor(motor), colorSensor(colorSensor), jammed(false), jam_timer(200),
+    : motor(motor), colorSensor(colorSensor), jammed(false), jam_timer(500),
       anti_jam_timer(200), color_sort_timer(30), color_sort_stop_timer(200),
       was_ring_detected(false), min_color(-1), max_color(-1),
       task_created(false), desired_voltage(127), anti_jamming(true) {
