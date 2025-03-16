@@ -17,6 +17,7 @@ private:
   State m_state;
   float getTarget() const;
   float getRotation() const;
+  float m_lowest;
 
 public:
   Lift(pros::MotorGroup &motors, float gear_ratio, lemlib::PID pid);

@@ -37,7 +37,7 @@ int Lift::getState() {
 // Constructor
 Lift::Lift(
     pros::MotorGroup &motors, float gear_ratio, lemlib::PID pid)
-    : m_motors(motors), gear_ratio(gear_ratio), m_pid(pid) {
+    : m_motors(motors), gear_ratio(gear_ratio), m_pid(pid), m_lowest(0) {
   m_state = REST;
 }
 

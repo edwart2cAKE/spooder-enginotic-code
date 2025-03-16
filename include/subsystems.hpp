@@ -12,6 +12,7 @@
 #include "pros/motor_group.hpp"
 #include "pros/motors.hpp"
 #include "pros/optical.hpp"
+#include "pros/rotation.hpp"
 #include <sys/_intsup.h>
 
 // Intake motor
@@ -27,7 +28,11 @@ extern int lift_state;
 // mogo
 extern pros::adi::DigitalOut mogo;
 extern bool mogo_state;
+extern pros::adi::DigitalOut doinker;
+extern bool doinker_state;
+
 extern pros::Optical optical; // optical sensor for ring detection
+extern pros::Rotation rotation;
 
 // Direct Chassis object from lemlib
 extern lemlib::Chassis chassis;

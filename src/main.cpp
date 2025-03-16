@@ -1,5 +1,6 @@
 #include "main.h"
 #include "autos.hpp"
+#include "lemlib/timer.hpp"
 #include "pros/llemu.hpp"
 #include "pros/misc.h"
 #include "pros/misc.hpp"
@@ -8,7 +9,7 @@
 #include "subsystems.hpp"
 
 // auton id
-int auto_id = 0;
+int auto_id = 4;
 bool auton_ran;
 
 void on_right_button() { auto_id = (auto_id + 1) % num_autos; }
@@ -31,11 +32,12 @@ void initialize() {
 
   // reverse intake motor
   lady_brown_motor.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
-  optical.set_led_pwm(10); // turn on optical sensor led
   optical.set_integration_time(100);
+  rotation.set_data_rate(5);
 
   // make intake task
-  intake_c.controlIntakeTask();    // start the intake control task
+  intake_c.controlIntakeTask();  // start the intake control task
+  intake_c.setColorRange(0, 25); // set color range for ring detection
 
   // print position to brain screen
   auton_ran = false;
@@ -46,7 +48,7 @@ void initialize() {
       pros::lcd::print(6, "Auton Name: %s", auto_names[auto_id].c_str());
 
       // print Lady Brown state to the brain screen
-      //pros::lcd::print(7, "Lady Brown State: %d", lift_state);
+      // pros::lcd::print(7, "Lady Brown State: %d", lift_state);
 
       // print robot location to the brain screen
       pros::lcd::print(0, "X: %f", chassis.getPose().x);         // x
@@ -58,8 +60,8 @@ void initialize() {
                        pros::battery::get_voltage() *
                            pros::battery::get_current() / 1e6);
 
-      // print lb error to brain
-      pros::lcd::print(4, "lb error: %f", lift_error(lift_state));
+      // print lb pos to brain
+     
 
       // delay to save resources
       pros::delay(20);
@@ -99,21 +101,24 @@ void competition_initialize() {}
 void autonomous() {
   auton_ran = true;
   chassis.setBrakeMode(pros::E_MOTOR_BRAKE_HOLD);
+
+  lemlib::Timer auto_timer(60e3); // create a timer for the autonomous
   switch (auto_id) {
   case 0:
     right_red4ring(); // run right red 4 ring auto
     break;
   case 1:
-    test_lateral_range(12, 6, 10);
+    test_lateral(24); // run test lateral auto
+    // test_lateral_range(12, 6, 10);
     break;
   case 2:
-    auto_skills();
+    states_skills(); // run states skills auto
     break;
   case 3:
     match_ladder();
     break;
   case 4:
-    match_ring2();
+    left_blue2ring();
     break;
   case 5:
     test_angular(90);
@@ -125,7 +130,7 @@ void autonomous() {
     pros::lcd::print(5, "You somehow broke it");
     break;
   }
-  // pros::delay(1e9);
+  auto_timer.waitUntilDone(); // wait for the autonomous to finish
 }
 
 /**
@@ -143,6 +148,8 @@ void autonomous() {
  */
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 void opcontrol() {
+  mogo_state = LOW;
+  mogo.set_value(mogo_state);
   while (true) {
     // tank drive
     chassis.tank(master.get_analog(ANALOG_LEFT_Y),
@@ -150,12 +157,19 @@ void opcontrol() {
 
     // intake control (R1 / R2)
     int intake_movement = B_INTAKE_UP - B_INTAKE_DOWN;
-    intake_c.setDesiredVoltage(intake_movement * 127); // set desired voltage for intake
+    intake_c.setDesiredVoltage(intake_movement *
+                               127); // set desired voltage for intake
 
-    // mogo control (down)
+    // mogo control (left)
     if (B_MOGO) {
       mogo_state = !mogo_state;
       mogo.set_value(mogo_state);
+    }
+
+    // doinker control
+    if (master.get_digital_new_press(DIGITAL_RIGHT)) {
+      doinker_state = !doinker_state;
+      doinker.set_value(doinker_state);
     }
 
     // lady brown manual control with acceleration
@@ -163,7 +177,8 @@ void opcontrol() {
 
     if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
       autonomous();
-      chassis.setBrakeMode(pros::E_MOTOR_BRAKE_COAST); // set brake mode to coast after auto
+      chassis.setBrakeMode(
+          pros::E_MOTOR_BRAKE_COAST); // set brake mode to coast after auto
     }
     // delay to save resources
 

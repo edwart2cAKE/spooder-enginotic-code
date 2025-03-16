@@ -19,6 +19,8 @@ void match_ring2();
 
 // states autos
 void right_red4ring();
+void states_skills();
+void left_blue2ring();
 
 // selector funcs
 extern int num_autos;

@@ -1,7 +1,13 @@
 #include "subsystems.hpp"
+#include "intake.hpp"
+#include "liblvgl/llemu.hpp"
+#include "pros/adi.hpp"
+#include "pros/llemu.hpp"
 #include "pros/motor_group.hpp"
 #include "pros/optical.hpp"
-#include "intake.hpp"
+#include "pros/rotation.hpp"
+#include "pros/rtos.hpp"
+#include "scaled_imu.hpp"
 
 // port macros
 
@@ -19,7 +25,7 @@
 #define lady_brown_ports 8
 
 // rotation port
-#define rotation_port 11
+#define rotation_port 9
 
 // mogo port
 #define mogo_port 8
@@ -33,9 +39,9 @@
 
 // lateral PID controller
 lemlib::ControllerSettings
-    lateral_controller(8,   // proportional gain (kP)
-                       0,   // integral gain (kI)
-                       0,   // derivative gain (kD)
+    lateral_controller(9,   // proportional gain (kP)
+                       0.1, // integral gain (kI)
+                       10,  // derivative gain (kD)
                        3,   // anti windup
                        1,   // small error range, in inches
                        100, // small error range timeout, in milliseconds
@@ -48,7 +54,7 @@ lemlib::ControllerSettings
 lemlib::ControllerSettings
     angular_controller(2.5, // proportional gain (kP)
                        0.1, // integral gain (kI)
-                       10,  // derivative gain (kD)
+                       20,  // derivative gain (kD)
                        10,  // anti windup
                        1,   // small error range, in degrees
                        100, // small error range timeout, in milliseconds
@@ -58,8 +64,8 @@ lemlib::ControllerSettings
     );
 
 // intake motor
-pros::Motor intake_motor(intake_port, pros::v5::MotorGears::blue,
-                         pros::v5::MotorEncoderUnits::degrees);
+pros::Motor intake(intake_port, pros::v5::MotorGears::blue,
+                   pros::v5::MotorEncoderUnits::degrees);
 
 // lady brown motor
 pros::MotorGroup lady_brown_motor({lady_brown_ports},
@@ -70,19 +76,45 @@ pros::MotorGroup lady_brown_motor({lady_brown_ports},
 pros::adi::DigitalOut mogo(mogo_port, LOW);
 bool mogo_state = LOW;
 
+// doinket
+
+pros::adi::DigitalOut doinker(7, LOW);
+bool doinker_state = LOW;
+
 // lift PID controller
-lemlib::PID lift_pid(3, 0, 5, 5);
+lemlib::PID lift_pid(3, 0, 5, 10);
 int lift_state = 0;
 
 // optical sensor
-pros::Optical optical_sensor(9);
+pros::Optical optical(10);
+
+// rotation sensor
+pros::Rotation rotation(rotation_port);
 
 // create Intake object
-Intake intake_c(intake_motor, optical_sensor);
+Intake intake_c(intake, optical);
 
 double lift_error(int state) {
-  int target = (state == READY) ? -93 : -1;
-  const double error = target - lady_brown_motor.get_position(0);
+  if (!pros::lcd::is_initialized()) {
+    pros::lcd::initialize();
+  } // initialize lcd if not already done
+
+  static int rotations;
+  static int prev_rotation = 0;
+  int angle;
+
+  int target = (state == REST) ? 359 : 253; // set target
+
+  if (rotation.get_position() < 10000) {
+    angle = lady_brown_motor.get_position();
+  } else {
+    angle = rotation.get_position()/100; 
+  }
+
+  pros::lcd::print(7, "Angle: %d", angle); // print angle to lcd
+
+  const double error = target - angle;     // calculate error
+  prev_rotation = rotation.get_position(); // store previous rotation
   return error;
 }
 
@@ -93,15 +125,17 @@ void control_lift(int up_down, bool rest, bool ready) {
   // ready button -> READY
   if (ready) {
     lift_state = READY;
+    intake_c.setAntiJamming(false); // disable anti-jamming when ready
   }
 
   // rest button -> REST
   if (rest) {
     lift_state = REST;
+    intake_c.setAntiJamming(true); // enable anti-jamming when resting
   }
 
   // up_down + READY -> DRIVER
-  if (up_down != 0 && lift_state == READY) {
+  if (up_down != 0) {
     lift_state = DRIVER;
   }
 
@@ -109,11 +143,17 @@ void control_lift(int up_down, bool rest, bool ready) {
   if (lift_state == READY || lift_state == REST) {
 
     const float output = lift_pid.update(lift_error(lift_state));
-    lady_brown_motor.move(output);
+
+    if (lift_state == REST && lift_error(lift_state) < 1) {
+      lady_brown_motor.brake(); // brake when at rest and above target
+    } else
+      lady_brown_motor.move(output);
   }
 
   // driver control
   if (lift_state == DRIVER) {
+    int _ = lift_error(lift_state); // get lift error for driver control
+    intake_c.setAntiJamming(false); // disable anti-jamming when driving
     static int lady_brown_speed = 0;
     if (up_down != 0) {
       lady_brown_speed += (up_down * 10);
@@ -127,7 +167,7 @@ void control_lift(int up_down, bool rest, bool ready) {
 
 // intake control with anti jam
 void intake_control(int up_down) {
-    //intake_c.controlIntake(up_down);
+  // intake_c.controlIntake(up_down);
 }
 
 // chassis motor groups
@@ -137,16 +177,17 @@ pros::MotorGroup right_side(dt_right_ports, pros::v5::MotorGears::blue,
                             pros::v5::MotorEncoderUnits::degrees);
 
 // drivetrain settings
-lemlib::Drivetrain drivetrain(&left_side,                 // left motor group
-                              &right_side,                // right motor group
-                              10,                         // 10 inch track width
-                              lemlib::Omniwheel::OLD_275, // using new 4" omnis
-                              450, // drivetrain rpm is 360
-                              2    // horizontal drift is 2 (for now)
+lemlib::Drivetrain drivetrain(&left_side,  // left motor group
+                              &right_side, // right motor group
+                              10,          // 10 inch track width
+                              lemlib::Omniwheel::OLD_275 -
+                                  0.06, // using new 4" omnis
+                              450,      // drivetrain rpm is 360
+                              2         // horizontal drift is 2 (for now)
 );
 
 // imu
-pros::Imu imu(imu_port);
+ScaledIMU imu(imu_port, (360.0 * 7 / (360 * 7 - 12)));
 // odometry settings
 lemlib::OdomSensors sensors(
     nullptr, // vertical tracking wheel 1, set to null
