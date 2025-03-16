@@ -9,7 +9,7 @@
 #include "subsystems.hpp"
 
 // auton id
-int auto_id = 4;
+int auto_id = 2;
 bool auton_ran;
 
 void on_right_button() { auto_id = (auto_id + 1) % num_autos; }

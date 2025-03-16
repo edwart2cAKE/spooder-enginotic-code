@@ -6,7 +6,6 @@
 #include "pros/motor_group.hpp"
 #include "pros/optical.hpp"
 #include "pros/rotation.hpp"
-#include "pros/rtos.hpp"
 #include "scaled_imu.hpp"
 
 // port macros
@@ -16,7 +15,7 @@
 #define dt_right_ports {5, 4, 6}
 
 // imu port
-#define imu_port 20
+#define imu_port 19
 
 // intake port
 #define intake_port 7
@@ -56,9 +55,9 @@ lemlib::ControllerSettings
                        0.1, // integral gain (kI)
                        20,  // derivative gain (kD)
                        10,  // anti windup
-                       1,   // small error range, in degrees
+                       3,   // small error range, in degrees
                        100, // small error range timeout, in milliseconds
-                       3,   // large error range, in degrees
+                       5,   // large error range, in degrees
                        500, // large error range timeout, in milliseconds
                        0    // maximum acceleration (slew)
     );
