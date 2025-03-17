@@ -498,10 +498,10 @@ void states_skills() {
   // comment trap */
 
   // score wall stake
- // stop intake
+  // stop intake
   chassis.turnToHeading(90, 1200); // turn to mogo stack
   intake_c.setAntiJamming(false);  // turn off anti-jamming
-  lady_brown_motor.move_absolute(-118, 200);
+  lady_brown_motor.move_absolute(-115, 200);
   chassis.moveToPoint(70, -1, 1800, {.maxSpeed = 50});
   chassis.waitUntil(12);
   pros::delay(1000); // wait for 1s to get rings in
@@ -541,21 +541,20 @@ void states_skills() {
 
   chassis.moveToPoint(48, 0, 1200, {.forwards = false}); // move to mogo stack
   chassis.turnToHeading(180, 1200);                      // turn to mogo stack
-  chassis.moveToPoint(48, -48, 1500);             // move to mogo stack
+  chassis.moveToPoint(48, -48, 1500);                    // move to mogo stack
   chassis.moveToPoint(48, -65, 2000, {.maxSpeed = 50});  // move to mogo stack
   chassis.waitUntilDone(); // wait for move to finish
 
   // get last ring
-  chassis.moveToPoint(48, -48, 1200, {.forwards = false});
-  chassis.turnToHeading(90, 900);    // turn to last ring
+  chassis.turnToPoint(60, -48, 1200);
   chassis.moveToPoint(60, -48, 700); // move to last ring
   chassis.waitUntilDone();           // wait for move to finish
   pros::delay(300);                  // wait for ring to get in
 
   // score mogo in corner
-  chassis.turnToPoint(63, -63, 1200, {.forwards = false}); // turn to corner
+  chassis.turnToPoint(66, -66, 1200, {.forwards = false}); // turn to corner
   chassis.waitUntilDone();
-  chassis.moveToPoint(63, -63, 1200, {.forwards = false}); // move to corner
+  chassis.moveToPoint(66, -66, 1200, {.forwards = false}); // move to corner
   chassis.waitUntilDone();
   mogo.set_value(0);
 
@@ -587,17 +586,17 @@ void states_skills() {
   chassis.moveToPoint(-48, 24, 1200); // move to 2nd ring
 
   // go back
-  chassis.turnToPoint(-43, -3, 1200, {.forwards = false});
-  chassis.moveToPoint(-43, -3, 1200, {.forwards = false});
+  chassis.turnToPoint(-40, -3, 1200, {.forwards = false});
+  chassis.moveToPoint(-40, -3, 1200, {.forwards = false});
 
   // comment trap */
 
-  // score wall stake 
-  intake_c.setDesiredVoltage(127); // turn off intake to avoid jamming
-// stop intake
+  // score wall stake
+  intake_c.setDesiredVoltage(127);  // turn off intake to avoid jamming
+                                    // stop intake
   chassis.turnToHeading(-90, 1200); // turn to mogo stack
   intake_c.setAntiJamming(false);   // turn off anti-jamming
-  lady_brown_motor.move_absolute(-118, 200);
+  lady_brown_motor.move_absolute(-115, 200);
   chassis.moveToPoint(-70, -3, 1800, {.maxSpeed = 50});
   chassis.waitUntil(12);
   pros::delay(1000); // wait for 1s to get rings in
@@ -627,7 +626,7 @@ void states_skills() {
     pros::delay(10);
     timeout += 10; // increment timeout
   }
-  chassis.setPose(-63, chassis.getPose().y,
+  chassis.setPose(-63, 0,
                   chassis.getPose().theta); // set position for next move
 
   // go to ring strip
@@ -639,23 +638,24 @@ void states_skills() {
 
   chassis.moveToPoint(-48, 0, 1200, {.forwards = false}); // move to mogo stack
   chassis.turnToHeading(180, 1200);                       // turn to mogo stack
-  chassis.moveToPoint(-48, -48, 1500);             // move to mogo stack
+  chassis.moveToPoint(-48, -48, 1500);                    // move to mogo stack
   chassis.moveToPoint(-48, -65, 2500, {.maxSpeed = 50});  // move to mogo stack
   chassis.waitUntilDone(); // wait for move to finish
 
   // get last ring
-  chassis.moveToPoint(-48, -48, 1200, {.forwards = false});
-  chassis.turnToHeading(-90, 1200);   // turn to last ring
+  chassis.turnToPoint(-60, -48, 1200);
   chassis.moveToPoint(-60, -48, 700); // move to last ring
-  chassis.waitUntilDone();            // wait for move to finish
-  pros::delay(300);     
-  chassis.moveToPose(-48, -48, 45, 200);             // wait for ring to get in
+  chassis.waitUntilDone();           // wait for move to finish
+  pros::delay(300);                  // wait for ring to get in
 
   // score mogo in corner
   chassis.turnToPoint(-66, -66, 1200, {.forwards = false}); // turn to corner
   chassis.moveToPoint(-66, -66, 1200, {.forwards = false}); // move to corner
   chassis.waitUntilDone();
   mogo.set_value(0);
+  chassis.tank(127, 127);
+  pros::delay(300);
+  chassis.tank(0, 0);
 
   // go to ring
   chassis.turnToPoint(-48, 0, 1200);
@@ -668,40 +668,41 @@ void states_skills() {
   chassis.turnToHeading(45, 400);
   chassis.moveToPoint(-24, 24, 1200); // move to blue stake
   chassis.waitUntilDone();
-  pros::delay(100); 
+  pros::delay(100);
   intake_c.setDesiredVoltage(0);
-  
-  chassis.moveToPoint(0, 46, 1200, {.forwards = false});
-  chassis.moveToPoint(0, 46, 1200,{.forwards = false, .maxSpeed = 60}); 
+
+  chassis.moveToPoint(0, 48, 1200, {.forwards = false});
+  chassis.moveToPoint(0, 48, 1200, {.forwards = false, .maxSpeed = 60});
   chassis.waitUntilDone();
+  chassis.tank(-50, -50);
+  pros::delay(400);
   mogo.set_value(1);
-  pros::delay(300);
   intake_c.setDesiredVoltage(127);
+  pros::delay(300);
 
   // throw mogo
-  chassis.tank(0, -100);
-  pros::delay(300);
+  chassis.tank(0, -127);
+  pros::delay(600);
   chassis.tank(0, 0);
   mogo.set_value(0);
 
-  // get first ring
-  chassis.turnToPoint(-24, 48, 1200,CHAIN);
+  // get first mogo
+  chassis.turnToPoint(-24, 48, 1200, CHAIN);
   chassis.moveToPoint(-24, 48, 1200,
                       CHAIN); // move to ring
-  chassis.turnToPoint(-48, 60, 1200, CHAIN);
-  chassis.moveToPoint(-48, 60, 1200); // move to ring
-  chassis.waitUntilDone();            // wait for move to finish
-  pros::delay(300);                   // wait for ring to get in
-
-  // score mogo
-  chassis.turnToPoint(-60, 60, 1200, {.forwards = false}); // turn to mogo
-  chassis.moveToPoint(-60, 60, 1200, {.forwards = false}); // move to mogo
+  chassis.turnToPoint(-60, 60, 1200, CHAIN);
+  chassis.moveToPoint(-60, 60, 2200, {.minSpeed = 127}); // move to ring
+  chassis.waitUntilDone();
+  chassis.tank(-90, -90);
+  pros::delay(300);
+  chassis.tank(0, 0);
 
   // move to 2nd mogo
+  chassis.turnToPoint(-36, 36, 1200, CHAIN);
   chassis.moveToPoint(-36, 36, 1200, CHAIN);
-  chassis.turnToPoint(24, 60, 1200);
+  chassis.turnToPoint(24, 60, 1200, CHAIN);
   chassis.moveToPoint(24, 60, 1200, CHAIN); // move to 2nd mogo
-  chassis.moveToPoint(66, 66, 2200);
+  chassis.moveToPoint(66, 66, 2200, {.minSpeed = 127});
 
   // done
 

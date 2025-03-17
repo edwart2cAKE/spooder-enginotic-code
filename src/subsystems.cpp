@@ -102,7 +102,7 @@ double lift_error(int state) {
   static int prev_rotation = 0;
   int angle;
 
-  int target = (state == REST) ? 359 : 253; // set target
+  int target = (state == REST) ? 359 : 245-3; // set target
 
   if (rotation.get_position() < 10000) {
     angle = lady_brown_motor.get_position();
